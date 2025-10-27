@@ -2,23 +2,15 @@
 
 Welcome! This guide walks you through configuring and running the project locally on Windows. It also explains the full interview workflow (Behavioral ➜ Technical), live voice practice, and where the progress bar appears.
 
-### What you’ll build/run
-- Next.js 15 + React 19 app with Tailwind CSS 4
-- Behavioral interview practice: chat-based and live voice
-- Technical interview practice with coding tasks
-- Full Interview flow with a progress bar across stages
-
----
-
 ## Prerequisites
 - Node.js 18.18+ (Node 20 LTS recommended)
 - npm (recommended) or pnpm/yarn
 - A modern browser (Chrome/Edge) with microphone access for live practice
 - Accounts/API keys for:
-	- Google Gemini (Generative AI)
-	- ElevenLabs (Text-to-Speech)
-	- Deepgram (Speech-to-Text)
-	- Firebase (Web app config)
+  - Google Gemini (Generative AI)
+  - ElevenLabs (Text-to-Speech)
+  - Deepgram (Speech-to-Text)
+  - Firebase (Web app config)
 
 ---
 
@@ -66,11 +58,10 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 npm run dev
 ```
 Visit http://localhost:3000
-```
 
 ---
 
-## 5) Firebase setup (minimal)
+## 4) Firebase setup (minimal)
 You can explore without signing in, but saving sessions requires Firebase.
 
 1) Create a Firebase project and a Web App under it.
@@ -79,7 +70,7 @@ You can explore without signing in, but saving sessions requires Firebase.
 
 ---
 
-## 6) API keys – where to get them
+## 5) API keys – where to get them
 - Google Gemini: Google AI Studio -> Create API Key
 - ElevenLabs: User dashboard -> API Keys
 - Deepgram: Console -> API Keys (Project ID optional for temp key flow)
