@@ -66,11 +66,6 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 npm run dev
 ```
 Visit http://localhost:3000
-
-If you encounter blank screens due to cached artifacts, clear the Next.js cache and restart:
-```cmd
-rd /s /q .next
-npm run dev
 ```
 
 ---
