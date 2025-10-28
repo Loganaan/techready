@@ -4,6 +4,7 @@ import SideButtons, { MobileMenuProvider } from "../components/SideButtons";
 import Header from "../components/Header";
 import AuthButtons from "../components/AuthButtons";
 import MobileMenuButton from "../components/MobileMenuButton";
+import GoogleAnalytics from "../components/GoogleAnalytics";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SplashProvider } from "@/components/SplashProvider";
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
+        <GoogleAnalytics />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <SplashProvider>
