@@ -16,7 +16,7 @@ interface ConsoleOutputProps {
 
 export default function ConsoleOutput({ testResults, output }: ConsoleOutputProps) {
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="h-full lg:flex-1 flex flex-col min-h-0">
       <div className="bg-gray-800 dark:bg-gray-950 px-4 py-2 flex items-center gap-2 border-b border-gray-700">
         <Terminal className="w-4 h-4 text-gray-400" />
         <span className="text-gray-300 text-sm font-semibold">Test Cases & Console</span>

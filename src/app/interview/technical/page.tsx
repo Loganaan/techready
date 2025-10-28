@@ -965,40 +965,40 @@ export default function TechnicalInterviewPage() {
 
       {/* Question Navigation Bar (only show if using API questions) */}
       {apiQuestions.length > 0 && (
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-4">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 lg:px-6 py-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4 max-w-7xl mx-auto">
+            <div className="flex items-center justify-between lg:justify-start gap-2 lg:gap-4">
               <button
                 onClick={handlePreviousQuestion}
                 disabled={currentQuestionIndex === 0}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium transition-all duration-200 hover:shadow-md hover:scale-105 disabled:hover:scale-100 disabled:hover:shadow-none"
+                className="px-3 py-2 lg:px-4 lg:py-2 text-sm lg:text-base bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium transition-all duration-200 hover:shadow-md hover:scale-105 disabled:hover:scale-100 disabled:hover:shadow-none"
               >
                 ← Previous
               </button>
-              <span className="text-gray-700 dark:text-gray-300 font-medium">
+              <span className="text-gray-700 dark:text-gray-300 font-medium text-sm lg:text-base">
                 Question {currentQuestionIndex + 1} of {apiQuestions.length}
               </span>
               {currentQuestionIndex < apiQuestions.length - 1 ? (
                 <button
                   onClick={handleNextQuestion}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 font-medium"
+                  className="px-3 py-2 lg:px-4 lg:py-2 text-sm lg:text-base bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:shadow-md hover:scale-105"
                 >
                   Next →
                 </button>
               ) : (
                 <button
                   onClick={handleSubmitInterview}
-                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold shadow-lg"
+                  className="px-4 py-2 lg:px-6 lg:py-2 text-sm lg:text-base bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
                 >
                   ✓ Submit Interview
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto">
               {currentApiQuestion?.topicTags.slice(0, 3).map((tag, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium"
+                  className="px-2 py-1 lg:px-3 lg:py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs lg:text-sm font-medium whitespace-nowrap"
                 >
                   {tag}
                 </span>
@@ -1025,18 +1025,22 @@ export default function TechnicalInterviewPage() {
             {/* Right Panel - Code Editor (top) & Console (bottom) */}
             <div className="flex flex-col bg-gray-50 dark:bg-gray-950 overflow-hidden">
               {/* Code Editor Section */}
-              <CodeEditor
-                code={code}
-                onCodeChange={setCode}
-                onRunCode={handleRunCode}
-                onRequestFeedback={handleRequestFeedback}
-                onReset={handleReset}
-                isRunning={isRunning}
-                isFetchingFeedback={isFetchingFeedback}
-              />
+              <div className="h-3/5 lg:flex-1">
+                <CodeEditor
+                  code={code}
+                  onCodeChange={setCode}
+                  onRunCode={handleRunCode}
+                  onRequestFeedback={handleRequestFeedback}
+                  onReset={handleReset}
+                  isRunning={isRunning}
+                  isFetchingFeedback={isFetchingFeedback}
+                />
+              </div>
 
               {/* Console / Test Results Section */}
-              <ConsoleOutput testResults={testResults} output={output} />
+              <div className="h-2/5 lg:flex-1">
+                <ConsoleOutput testResults={testResults} output={output} />
+              </div>
             </div>
           </>
         )}
@@ -1080,16 +1084,20 @@ export default function TechnicalInterviewPage() {
               isFetchingFeedback={isFetchingFeedback}
             />
             <div className="flex flex-col bg-gray-50 dark:bg-gray-950 overflow-hidden">
-              <CodeEditor
-                code={code}
-                onCodeChange={setCode}
-                onRunCode={handleRunCode}
-                onRequestFeedback={handleRequestFeedback}
-                onReset={handleReset}
-                isRunning={isRunning}
-                isFetchingFeedback={isFetchingFeedback}
-              />
-              <ConsoleOutput testResults={testResults} output={output} />
+              <div className="h-3/5 lg:flex-1">
+                <CodeEditor
+                  code={code}
+                  onCodeChange={setCode}
+                  onRunCode={handleRunCode}
+                  onRequestFeedback={handleRequestFeedback}
+                  onReset={handleReset}
+                  isRunning={isRunning}
+                  isFetchingFeedback={isFetchingFeedback}
+                />
+              </div>
+              <div className="h-2/5 lg:flex-1">
+                <ConsoleOutput testResults={testResults} output={output} />
+              </div>
             </div>
           </>
         )}

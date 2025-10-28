@@ -44,6 +44,8 @@ function BehavioralInterviewContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFullInterview, setIsFullInterview] = useState(false);
   const [showTransitionModal, setShowTransitionModal] = useState(false);
+  const [showSessionsSidebar, setShowSessionsSidebar] = useState(false);
+  const [showChatView, setShowChatView] = useState(false); // New state to control view
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sessionCreationInitiatedRef = useRef(false);
 
@@ -461,6 +463,7 @@ function BehavioralInterviewContent() {
       
       setSessions(prevSessions => [newSession, ...prevSessions]);
       setActiveSessionId(newSession.id);
+      setShowChatView(true); // Show chat view on mobile after creating session
     } catch (error) {
       console.error('Error creating new session:', error);
     } finally {
@@ -498,10 +501,79 @@ function BehavioralInterviewContent() {
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-[calc(100vh-8rem)]">
       <div className="bg-gray-50 dark:bg-gray-950">
-      <div className="flex h-[calc(100vh-8rem)]">
+      <div className="flex h-[calc(100vh-8rem)] relative">
         
-        {/* Left Sidebar - Sessions List */}
-        <div className="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
+        {/* Mobile: Show sessions list first, then chat. Desktop: show sidebar + chat */}
+        {!showChatView ? (
+          // MOBILE SESSIONS LIST VIEW (Full screen on mobile, hidden on desktop)
+          <div className="lg:hidden w-full bg-white dark:bg-gray-900 flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Behavioral Interview</h2>
+                <Button
+                  variant="primary"
+                  className="flex items-center gap-2 text-sm bg-[rgba(76,166,38,1)] hover:bg-[rgba(76,166,38,0.9)]"
+                  onClick={() => setShowNewSessionModal(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                  New Session
+                </Button>
+              </div>
+            </div>
+
+            {/* Sessions Grid/List */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {sessions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                  <div className="max-w-md">
+                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                      Welcome to Behavioral Interview Practice
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                      Start a new session to practice behavioral interview questions with AI-powered feedback. Click the &quot;New Session&quot; button above to get started.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {sessions.map((session) => (
+                    <div
+                      key={session.id}
+                      onClick={() => {
+                        setActiveSessionId(session.id);
+                        setShowChatView(true);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <SessionCard
+                        id={session.id}
+                        title={session.title}
+                        lastMessage={session.lastMessage}
+                        timestamp={session.timestamp}
+                        messageCount={session.messageCount}
+                        isActive={false}
+                        onSelect={() => {}}
+                        onDelete={deleteSession}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+        
+        {/* Mobile Overlay */}
+        {showSessionsSidebar && (
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            onClick={() => setShowSessionsSidebar(false)}
+          />
+        )}
+        
+        {/* Left Sidebar - Sessions List (Desktop only or mobile when in chat view with toggle) */}
+        <div className={`w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-col transition-transform duration-300 lg:flex ${showChatView ? 'hidden lg:flex' : 'hidden'}`}>
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-800">
             <div className="flex items-center justify-between mb-4">
@@ -570,19 +642,39 @@ function BehavioralInterviewContent() {
                 timestamp={session.timestamp}
                 messageCount={session.messageCount}
                 isActive={activeSessionId === session.id}
-                onSelect={setActiveSessionId}
+                onSelect={(id) => {
+                  setActiveSessionId(id);
+                  setShowSessionsSidebar(false); // Close sidebar on mobile when session is selected
+                }}
                 onDelete={deleteSession}
               />
             ))}
           </div>
         </div>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
+        {/* Main Chat Area - Show on desktop always, on mobile only when showChatView is true */}
+        <div className={`flex-1 flex-col bg-white dark:bg-gray-900 ${showChatView || 'hidden lg:flex'} flex`}>
           {/* Chat Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
             <div className="flex justify-between items-center">
-              <div>
+              <div className="flex items-center gap-3">
+                {/* Mobile Back Button */}
+                <button
+                  onClick={() => setShowChatView(false)}
+                  className="lg:hidden w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-colors"
+                  aria-label="Back to sessions"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-gray-700 dark:text-gray-300"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                  </svg>
+                </button>
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   Behavioral Interview Coach
                 </h1>
@@ -725,7 +817,9 @@ function BehavioralInterviewContent() {
         }
         return undefined;
       })()}
-    />      {/* Transition Modal - Full Interview Flow */}
+    />
+
+      {/* Transition Modal - Full Interview Flow */}
       {showTransitionModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full p-8">

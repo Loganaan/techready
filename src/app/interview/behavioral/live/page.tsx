@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useRef, Suspense } from 'react';
-import { Mic, MicOff, Volume2, VolumeX, X, AlertCircle, Bell, BellOff } from 'lucide-react';
+import { useState, useRef, Suspense, useEffect } from 'react';
+import { Mic, MicOff, Volume2, VolumeX, X, AlertCircle } from 'lucide-react';
 import Button from '@/components/Button';
 import { useDeepgram } from '@/hooks/useDeepgram';
 import { firebaseUtils } from '@/lib/firebase';
@@ -190,16 +190,28 @@ function LiveInterviewSessionContent() {
       const audioUrl = URL.createObjectURL(audioBlob);
       
       if (audioRef.current) {
-        audioRef.current.pause();
+        try {
+          audioRef.current.pause();
+          // reset previous audio to start to avoid resuming in the middle
+          audioRef.current.currentTime = 0;
+        } catch (e) {}
       }
-      
       const audio = new Audio(audioUrl);
+      audio.preload = 'auto';
+      // ensure playback starts from the beginning
+      audio.currentTime = 0;
       audioRef.current = audio;
-      
+
       return new Promise<void>((resolve) => {
         audio.onended = () => resolve();
+        // try to play after ensuring metadata is loaded; if muted, resolve immediately
         if (!isMuted) {
-          audio.play();
+          // attempt to play and catch any promise rejection
+          audio.play().catch(err => {
+            // If playback fails, still resolve to avoid blocking
+            console.error('Audio play failed:', err);
+            resolve();
+          });
         } else {
           resolve();
         }
@@ -376,6 +388,63 @@ function LiveInterviewSessionContent() {
     router.push('/interview/behavioral');
   };
 
+  // Ensure we stop recording and persist session when the component unmounts
+  useEffect(() => {
+    // Synchronous handler for unload events
+    const handleBeforeUnload = () => {
+      try {
+        stopRecording();
+      } catch (e) {
+        // swallow errors
+      }
+      if (audioRef.current) {
+        try { audioRef.current.pause(); } catch (e) {}
+      }
+      // Note: we avoid awaiting network calls here since unload may cancel them.
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+
+      // On unmount, stop recording and save session data (fire-and-forget)
+      try {
+        stopRecording();
+      } catch (e) {
+        // ignore
+      }
+      if (audioRef.current) {
+        try { audioRef.current.pause(); } catch (e) {}
+      }
+
+      // Persist the session without navigating (similar to endInterview save logic)
+      (async () => {
+        if (user && sessionId && messages.length > 0) {
+          try {
+            const firebaseMessages = messages.map(msg => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+              timestamp: Timestamp.fromDate(msg.timestamp)
+            }));
+
+            const lastMsg = messages[messages.length - 1];
+
+            await firebaseUtils.updateChatSession(sessionId, {
+              messages: firebaseMessages,
+              messageCount: messages.length,
+              lastMessage: lastMsg.content,
+              timestamp: Timestamp.fromDate(lastMsg.timestamp)
+            });
+          } catch (error) {
+            console.error('Error saving session on unmount:', error);
+          }
+        }
+      })();
+    };
+  }, [stopRecording, sessionId, messages, user]);
+
   const toggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
@@ -411,23 +480,7 @@ function LiveInterviewSessionContent() {
               </p>
             </div>
             
-            {/* Filler Word Detection Toggle */}
-            {interviewStarted && (
-              <button
-                onClick={() => setFillerWordDetectionEnabled(!fillerWordDetectionEnabled)}
-                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg mr-4 transition-all duration-200"
-                title={fillerWordDetectionEnabled ? 'Disable Filler Word Detection' : 'Enable Filler Word Detection'}
-              >
-                {fillerWordDetectionEnabled ? (
-                  <Bell className="w-5 h-5" />
-                ) : (
-                  <BellOff className="w-5 h-5" />
-                )}
-                <span className="text-xs font-medium">
-                  {fillerWordDetectionEnabled ? 'On' : 'Off'}
-                </span>
-              </button>
-            )}
+            
             
             <button
               onClick={endInterview}
@@ -488,6 +541,36 @@ function LiveInterviewSessionContent() {
                 <p className="text-gray-600 dark:text-gray-400">
                   Click start when you&apos;re ready to begin your live interview practice
                 </p>
+              </div>
+              {/* Pre-interview filler word toggle */}
+              <div className="flex justify-center mb-6">
+                <label
+                  role="switch"
+                  aria-checked={fillerWordDetectionEnabled}
+                  title={fillerWordDetectionEnabled ? 'Disable Filler Word Detection' : 'Enable Filler Word Detection'}
+                  className="flex items-center gap-3 bg-white/5 dark:bg-white/5 px-3 py-2 rounded-lg transition-all duration-200 justify-center mx-auto"
+                >
+                  <input
+                    type="checkbox"
+                    checked={fillerWordDetectionEnabled}
+                    onChange={(e) => setFillerWordDetectionEnabled(e.target.checked)}
+                    className="sr-only"
+                    aria-label="Toggle filler word detection"
+                  />
+
+                  <span
+                    className={`relative inline-block w-11 h-6 rounded-full transition-colors flex-shrink-0 ${fillerWordDetectionEnabled ? 'bg-[rgba(76,166,38,1)]' : 'bg-gray-300 dark:bg-gray-600'}`}
+                    aria-hidden="true"
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${fillerWordDetectionEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+                    />
+                  </span>
+
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {fillerWordDetectionEnabled ? 'Filler Detection: On' : 'Filler Detection: Off'}
+                  </span>
+                </label>
               </div>
               <Button
                 variant="primary"

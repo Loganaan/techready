@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import SideButtons from "../components/SideButtons";
+import SideButtons, { MobileMenuProvider } from "../components/SideButtons";
 import Header from "../components/Header";
 import AuthButtons from "../components/AuthButtons";
+import MobileMenuButton from "../components/MobileMenuButton";
+import GoogleAnalytics from "../components/GoogleAnalytics";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SplashProvider } from "@/components/SplashProvider";
@@ -36,21 +38,27 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
+        <GoogleAnalytics />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <SplashProvider>
-              <SideButtons />
-              <div className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors ml-24">
-                <div className="relative">
-                  <Header />
-                  <div className="absolute right-6 top-3">
-                    <AuthButtons />
+              <MobileMenuProvider>
+                <SideButtons />
+                <div className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors lg:ml-24">
+                  <div className="relative">
+                    <Header />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                      <MobileMenuButton />
+                    </div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <AuthButtons />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <main className="ml-24">
-                {children}
-              </main>
+                <main className="lg:ml-24">
+                  {children}
+                </main>
+              </MobileMenuProvider>
             </SplashProvider>
           </AuthProvider>
         </ThemeProvider>

@@ -64,22 +64,26 @@ export default function Home() {
     return () => clearInterval(typingInterval);
   }, [showSplash]);
 
-  // Prevent scrolling when splash screen is visible
+  // Prevent scrolling on landing page
   useEffect(() => {
-    if (showSplash) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
+    };
+  }, []);
+
+  // Handle splash screen
+  useEffect(() => {
+    if (!showSplash) {
       // Scroll to top when splash finishes
       window.scrollTo(0, 0);
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [showSplash]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors relative overflow-hidden flex flex-col items-center justify-center">
+    <div className="h-screen bg-white dark:bg-gray-900 transition-colors relative overflow-hidden flex flex-col items-center justify-center">
       {/* Splash Screen Overlay with typing animation */}
       <div
         className={`fixed inset-0 flex items-center justify-center transition-transform duration-700 ${showSplash ? 'translate-y-0' : '-translate-y-full'}`}
@@ -160,7 +164,7 @@ export default function Home() {
           </Link>
 
           {/* Center Section - Decorative */}
-          <div className="flex flex-col items-center mx-10 mt-52">
+          <div className="hidden lg:flex flex-col items-center mx-10 mt-52">
             {/* Flower above the square and horizontal line */}
             <div className="relative w-60 flex flex-col items-center">
               {/* Flower SVG */}

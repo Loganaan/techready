@@ -25,11 +25,11 @@ export default function AuthButtons() {
     return (
       <button
         onClick={handleSignOut}
-        className="flex items-center gap-2 px-6 py-3 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-semibold transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-md"
+        className="flex items-center gap-2 px-2.5 py-2.5 lg:px-6 lg:py-3 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-semibold transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-md"
         title="Sign Out"
       >
         <LogOut className="w-5 h-5" />
-        <span className="hidden sm:inline">Sign Out</span>
+        <span className="hidden lg:inline">Sign Out</span>
       </button>
     );
   }
@@ -37,11 +37,11 @@ export default function AuthButtons() {
   return (
     <button
       onClick={handleSignIn}
-      className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[rgba(76,166,38,1)] hover:bg-[rgba(76,166,38,0.9)] text-white font-semibold transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg shadow-sm"
+      className="flex items-center gap-2 px-2.5 py-2.5 lg:px-6 lg:py-3 rounded-lg bg-[rgba(76,166,38,1)] hover:bg-[rgba(76,166,38,0.9)] text-white font-semibold transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg shadow-sm"
       title="Sign In"
     >
       <LogIn className="w-5 h-5" />
-      <span>Sign In</span>
+      <span className="hidden lg:inline">Sign In</span>
     </button>
   );
 }
