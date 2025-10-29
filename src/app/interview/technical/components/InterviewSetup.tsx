@@ -26,6 +26,57 @@ export default function InterviewSetup({ onSubmit, loading, error }: InterviewSe
   const [jobDescription, setJobDescription] = useState(
     'We are looking for a software engineer with strong problem-solving skills and experience in data structures and algorithms. The ideal candidate will have experience with system design and can write clean, efficient code.'
   );
+  const [jobDescriptionUrl, setJobDescriptionUrl] = useState('');
+  const [isParsing, setIsParsing] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [parseError, setParseError] = useState('');
+
+  const handleParseUrl = async () => {
+    if (!jobDescriptionUrl.trim()) {
+      setParseError('Please enter a job posting URL');
+      return;
+    }
+
+    setParseError('');
+    setIsParsing(true);
+
+    try {
+      const response = await fetch('/api/scrape-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jobDescriptionUrl }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to parse job posting');
+      }
+
+      // Populate form fields with scraped data
+      if (result.data.company) setCompany(result.data.company);
+      if (result.data.role) setRole(result.data.role);
+      if (result.data.seniority) {
+        // Map seniority values to match the form options
+        const seniorityMap: Record<string, string> = {
+          'intern': 'intern',
+          'junior': 'junior',
+          'mid': 'mid',
+          'senior': 'senior'
+        };
+        setSeniority(seniorityMap[result.data.seniority] || 'mid');
+      }
+      if (result.data.jobDescription) setJobDescription(result.data.jobDescription);
+
+      // Show confirmation view
+      setShowConfirmation(true);
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : 'Failed to parse job posting. Please try manual input.');
+      console.error('Parse error:', err);
+    } finally {
+      setIsParsing(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +105,97 @@ export default function InterviewSetup({ onSubmit, loading, error }: InterviewSe
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Job Posting URL - Optional Auto-Fill */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Job Posting URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={jobDescriptionUrl}
+                  onChange={(e) => {
+                    setJobDescriptionUrl(e.target.value);
+                    setShowConfirmation(false);
+                  }}
+                  placeholder="https://example.com/careers/job-posting"
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-gray-400 dark:focus:border-gray-500 dark:bg-gray-700 text-black dark:text-white transition-all"
+                  disabled={isParsing || loading}
+                />
+                <button
+                  type="button"
+                  onClick={handleParseUrl}
+                  disabled={isParsing || loading || !jobDescriptionUrl.trim()}
+                  onMouseEnter={(e) => {
+                    if (!isParsing && !loading && jobDescriptionUrl.trim()) {
+                      e.currentTarget.style.transform = 'scale(1.03)';
+                      e.currentTarget.style.background = 'linear-gradient(to bottom right, #4CA62626, #4CA6260D)';
+                      e.currentTarget.style.borderColor = '#4CA62666';
+                      e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                      const textSpan = e.currentTarget.querySelector('span');
+                      if (textSpan) textSpan.style.color = 'rgba(76,166,38,1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isParsing && !loading && jobDescriptionUrl.trim()) {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.background = 'linear-gradient(to bottom right, rgb(107, 114, 128), rgb(75, 85, 99))';
+                      e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                      const textSpan = e.currentTarget.querySelector('span');
+                      if (textSpan) textSpan.style.color = 'white';
+                    }
+                  }}
+                  className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap ${
+                    isParsing || loading || !jobDescriptionUrl.trim() 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'cursor-pointer'
+                  }`}
+                  style={{
+                    background: 'linear-gradient(to bottom right, rgb(107, 114, 128), rgb(75, 85, 99))',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'rgb(75, 85, 99)',
+                    transition: 'all 300ms ease-out',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  {isParsing ? (
+                    <span className="flex items-center gap-2 text-white">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Parsing...
+                    </span>
+                  ) : showConfirmation ? (
+                    <span className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <span>✓</span>
+                      Parsed
+                    </span>
+                  ) : (
+                    <span className="text-white" style={{ transition: 'color 300ms ease-out' }}>
+                      Parse
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Success Message */}
+              {showConfirmation && (
+                <p className="mt-2 text-xs text-green-600 dark:text-green-400">
+                  Successfully parsed! Review and edit the fields below.
+                </p>
+              )}
+
+              {/* Parse Error Message */}
+              {parseError && (
+                <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                  {parseError}
+                </p>
+              )}
+            </div>
+
             {/* Company & Role Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

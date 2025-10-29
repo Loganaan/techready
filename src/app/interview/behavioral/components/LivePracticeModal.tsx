@@ -22,6 +22,48 @@ export default function LivePracticeModal({ isOpen, onClose, onStart }: LivePrac
   const [role, setRole] = useState('');
   const [seniority, setSeniority] = useState('');
   const [jobDescription, setJobDescription] = useState('');
+  const [jobDescriptionUrl, setJobDescriptionUrl] = useState('');
+  const [isParsing, setIsParsing] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleParseUrl = async () => {
+    if (!jobDescriptionUrl.trim()) {
+      setError('Please enter a job posting URL');
+      return;
+    }
+
+    setError('');
+    setIsParsing(true);
+
+    try {
+      const response = await fetch('/api/scrape-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jobDescriptionUrl }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to parse job posting');
+      }
+
+      // Populate form fields with scraped data
+      if (result.data.company) setCompany(result.data.company);
+      if (result.data.role) setRole(result.data.role);
+      if (result.data.seniority) setSeniority(result.data.seniority);
+      if (result.data.jobDescription) setJobDescription(result.data.jobDescription);
+
+      // Show confirmation view
+      setShowConfirmation(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse job posting. Please try manual input.');
+      console.error('Parse error:', err);
+    } finally {
+      setIsParsing(false);
+    }
+  };
 
   const handleStart = () => {
     // Pass parameters to onStart
@@ -46,6 +88,9 @@ export default function LivePracticeModal({ isOpen, onClose, onStart }: LivePrac
     setRole('');
     setSeniority('');
     setJobDescription('');
+    setJobDescriptionUrl('');
+    setError('');
+    setShowConfirmation(false);
   };
 
   if (!isOpen) return null;
@@ -73,6 +118,98 @@ export default function LivePracticeModal({ isOpen, onClose, onStart }: LivePrac
 
         {/* Modal Content */}
         <div className="p-6 space-y-5 overflow-y-auto flex-1">
+          {/* Job Posting URL - Optional Auto-Fill */}
+          <div>
+            <label htmlFor="jobUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Job Posting URL
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                id="jobUrl"
+                value={jobDescriptionUrl}
+                onChange={(e) => {
+                  setJobDescriptionUrl(e.target.value);
+                  setShowConfirmation(false);
+                }}
+                placeholder="https://example.com/careers/job-posting"
+                className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-gray-400 dark:focus:border-gray-500 transition-all"
+                disabled={isParsing}
+              />
+              <button
+                type="button"
+                onClick={handleParseUrl}
+                disabled={isParsing || !jobDescriptionUrl.trim()}
+                onMouseEnter={(e) => {
+                  if (!isParsing && jobDescriptionUrl.trim()) {
+                    e.currentTarget.style.transform = 'scale(1.03)';
+                    e.currentTarget.style.background = 'linear-gradient(to bottom right, #4CA62626, #4CA6260D)';
+                    e.currentTarget.style.borderColor = '#4CA62666';
+                    e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                    const textSpan = e.currentTarget.querySelector('span');
+                    if (textSpan) textSpan.style.color = 'rgba(76,166,38,1)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isParsing && jobDescriptionUrl.trim()) {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.background = 'linear-gradient(to bottom right, rgb(107, 114, 128), rgb(75, 85, 99))';
+                    e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                    const textSpan = e.currentTarget.querySelector('span');
+                    if (textSpan) textSpan.style.color = 'white';
+                  }
+                }}
+                className={`px-6 py-2.5 rounded-lg font-semibold whitespace-nowrap ${
+                  isParsing || !jobDescriptionUrl.trim() 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'cursor-pointer'
+                }`}
+                style={{
+                  background: 'linear-gradient(to bottom right, rgb(107, 114, 128), rgb(75, 85, 99))',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'rgb(75, 85, 99)',
+                  transition: 'all 300ms ease-out',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                {isParsing ? (
+                  <span className="flex items-center gap-2 text-white">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Parsing...
+                  </span>
+                ) : showConfirmation ? (
+                  <span className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <span>✓</span>
+                    Parsed
+                  </span>
+                ) : (
+                  <span className="text-white" style={{ transition: 'color 300ms ease-out' }}>
+                    Parse
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Success Message */}
+            {showConfirmation && (
+              <p className="mt-2 text-xs text-green-600 dark:text-green-400">
+                Successfully parsed! Review and edit the fields below.
+              </p>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
+          </div>
+
           {/* Session Parameters */}
           <div className="space-y-4">
             {/* Company */}
@@ -81,7 +218,7 @@ export default function LivePracticeModal({ isOpen, onClose, onStart }: LivePrac
                 htmlFor="live-company"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Company (Optional)
+                Company
               </label>
               <input
                 id="live-company"
@@ -99,7 +236,7 @@ export default function LivePracticeModal({ isOpen, onClose, onStart }: LivePrac
                 htmlFor="live-role"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Role (Optional)
+                Role
               </label>
               <input
                 id="live-role"
@@ -117,7 +254,7 @@ export default function LivePracticeModal({ isOpen, onClose, onStart }: LivePrac
                 htmlFor="live-seniority"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Seniority Level (Optional)
+                Seniority Level
               </label>
               <select
                 id="live-seniority"
@@ -139,7 +276,7 @@ export default function LivePracticeModal({ isOpen, onClose, onStart }: LivePrac
                 htmlFor="live-jobDescription"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Job Description (Optional)
+                Job Description
               </label>
               <textarea
                 id="live-jobDescription"
