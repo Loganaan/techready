@@ -126,14 +126,42 @@ export default function InterviewSetup({ onSubmit, loading, error }: InterviewSe
                   type="button"
                   onClick={handleParseUrl}
                   disabled={isParsing || loading || !jobDescriptionUrl.trim()}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-[1.03] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 whitespace-nowrap ${
-                    showConfirmation
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-gray-600 hover:bg-green-700 dark:bg-gray-500 dark:hover:bg-green-700 text-white'
+                  onMouseEnter={(e) => {
+                    if (!isParsing && !loading && jobDescriptionUrl.trim()) {
+                      e.currentTarget.style.transform = 'scale(1.03)';
+                      e.currentTarget.style.background = 'linear-gradient(to bottom right, #4CA62626, #4CA6260D)';
+                      e.currentTarget.style.borderColor = '#4CA62666';
+                      e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                      const textSpan = e.currentTarget.querySelector('span');
+                      if (textSpan) textSpan.style.color = 'rgba(76,166,38,1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isParsing && !loading && jobDescriptionUrl.trim()) {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.background = 'linear-gradient(to bottom right, rgb(107, 114, 128), rgb(75, 85, 99))';
+                      e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                      const textSpan = e.currentTarget.querySelector('span');
+                      if (textSpan) textSpan.style.color = 'white';
+                    }
+                  }}
+                  className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap ${
+                    isParsing || loading || !jobDescriptionUrl.trim() 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'cursor-pointer'
                   }`}
+                  style={{
+                    background: 'linear-gradient(to bottom right, rgb(107, 114, 128), rgb(75, 85, 99))',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'rgb(75, 85, 99)',
+                    transition: 'all 300ms ease-out',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
                 >
                   {isParsing ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-white">
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -141,12 +169,14 @@ export default function InterviewSetup({ onSubmit, loading, error }: InterviewSe
                       Parsing...
                     </span>
                   ) : showConfirmation ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-green-600 dark:text-green-400">
                       <span>✓</span>
                       Parsed
                     </span>
                   ) : (
-                    'Parse'
+                    <span className="text-white" style={{ transition: 'color 300ms ease-out' }}>
+                      Parse
+                    </span>
                   )}
                 </button>
               </div>
