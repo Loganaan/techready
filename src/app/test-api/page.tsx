@@ -256,7 +256,7 @@ export default function TestAPIPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company (optional)
+                    Company
                   </label>
                   <input
                     type="text"
@@ -269,7 +269,7 @@ export default function TestAPIPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Role (optional)
+                    Role
                   </label>
                   <input
                     type="text"
@@ -282,7 +282,7 @@ export default function TestAPIPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Difficulty (optional)
+                    Difficulty
                   </label>
                   <select
                     value={queryDifficulty}
@@ -298,7 +298,7 @@ export default function TestAPIPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Topic (optional)
+                    Topic
                   </label>
                   <input
                     type="text"

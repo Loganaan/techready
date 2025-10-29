@@ -138,7 +138,7 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
           {/* Job Posting URL - Optional Auto-Fill */}
           <div>
             <label htmlFor="jobUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Job Posting URL (Optional)
+              Job Posting URL
             </label>
             <div className="flex gap-2">
               <input

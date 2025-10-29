@@ -108,7 +108,7 @@ export default function InterviewSetup({ onSubmit, loading, error }: InterviewSe
             {/* Job Posting URL - Optional Auto-Fill */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Job Posting URL (Optional)
+                Job Posting URL
               </label>
               <div className="flex gap-2">
                 <input

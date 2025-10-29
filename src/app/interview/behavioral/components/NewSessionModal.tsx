@@ -132,7 +132,7 @@ export default function NewSessionModal({ isOpen, onClose, onStart, initialParam
           {/* Job Posting URL - Optional Auto-Fill */}
           <div>
             <label htmlFor="jobUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Job Posting URL (Optional)
+              Job Posting URL
             </label>
             <div className="flex gap-2">
               <input
@@ -197,7 +197,7 @@ export default function NewSessionModal({ isOpen, onClose, onStart, initialParam
               htmlFor="company"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Company (Optional)
+              Company
             </label>
             <input
               id="company"
@@ -215,7 +215,7 @@ export default function NewSessionModal({ isOpen, onClose, onStart, initialParam
               htmlFor="role"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Role (Optional)
+              Role
             </label>
             <input
               id="role"
@@ -233,7 +233,7 @@ export default function NewSessionModal({ isOpen, onClose, onStart, initialParam
               htmlFor="seniority"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Seniority Level (Optional)
+              Seniority Level
             </label>
             <select
               id="seniority"
@@ -255,7 +255,7 @@ export default function NewSessionModal({ isOpen, onClose, onStart, initialParam
               htmlFor="jobDescription"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Job Description (Optional)
+              Job Description
             </label>
             <textarea
               id="jobDescription"
