@@ -19,7 +19,6 @@ export interface InterviewParams {
 }
 
 export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInterviewModalProps) {
-  const [inputMode, setInputMode] = useState<'manual' | 'url'>('manual');
   const [company, setCompany] = useState('');
   const [role, setRole] = useState('');
   const [seniority, setSeniority] = useState<InterviewParams['seniority']>('junior');
@@ -27,9 +26,50 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
   const [jobDescription, setJobDescription] = useState('');
   const [companyInfo, setCompanyInfo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
+
+  const handleParseUrl = async () => {
+    if (!jobDescriptionUrl.trim()) {
+      setError('Please enter a job posting URL');
+      return;
+    }
+
+    setError('');
+    setIsParsing(true);
+
+    try {
+      const response = await fetch('/api/scrape-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jobDescriptionUrl }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to parse job posting');
+      }
+
+      // Populate form fields with scraped data
+      if (result.data.company) setCompany(result.data.company);
+      if (result.data.role) setRole(result.data.role);
+      if (result.data.seniority) setSeniority(result.data.seniority);
+      if (result.data.jobDescription) setJobDescription(result.data.jobDescription);
+      if (result.data.companyInfo) setCompanyInfo(result.data.companyInfo);
+
+      // Show confirmation view
+      setShowConfirmation(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse job posting. Please try manual input.');
+      console.error('Parse error:', err);
+    } finally {
+      setIsParsing(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,59 +77,13 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
     setIsLoading(true);
 
     try {
-      // Validate required fields
-      if (!company.trim() || !role.trim()) {
-        setError('Please fill in company and role fields');
-        setIsLoading(false);
-        return;
-      }
-
-      if (inputMode === 'manual') {
-        if (!jobDescription.trim()) {
-          setError('Please provide a job description');
-          setIsLoading(false);
-          return;
-        }
-        
-        // Validate minimum length (API requires at least 50 characters)
-        if (jobDescription.trim().length < 50) {
-          setError(`Job description must be at least 50 characters (currently ${jobDescription.trim().length})`);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      if (inputMode === 'url' && !jobDescriptionUrl.trim()) {
-        setError('Please provide a job posting URL');
-        setIsLoading(false);
-        return;
-      }
-
-      // TODO: If URL mode, scrape the job posting for details
-      // This would call a new API endpoint to extract job description and company info
-      const finalJobDescription = inputMode === 'url' 
-        ? `Job posting URL: ${jobDescriptionUrl}` 
-        : jobDescription;
-      const finalCompanyInfo = companyInfo;
-
-      if (inputMode === 'url') {
-        // TODO: Implement web scraping
-        // const scrapedData = await fetch('/api/scrape-job', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ url: jobDescriptionUrl })
-        // }).then(res => res.json());
-        // finalJobDescription = scrapedData.jobDescription;
-        // finalCompanyInfo = scrapedData.companyInfo;
-      }
-
       const params: InterviewParams = {
-        company: company.trim(),
-        role: role.trim(),
+        company: company.trim() || 'Unknown Company',
+        role: role.trim() || 'Unknown Role',
         seniority,
-        jobDescription: finalJobDescription,
-        companyInfo: finalCompanyInfo || undefined,
-        jobDescriptionUrl: inputMode === 'url' ? jobDescriptionUrl : undefined,
+        jobDescription: jobDescription.trim() || undefined,
+        companyInfo: companyInfo.trim() || undefined,
+        jobDescriptionUrl: jobDescriptionUrl.trim() || undefined,
       };
 
       onStart(params);
@@ -102,7 +96,7 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
   };
 
   const handleClose = () => {
-    if (!isLoading) {
+    if (!isLoading && !isParsing) {
       onClose();
       // Reset form
       setCompany('');
@@ -112,6 +106,7 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
       setJobDescription('');
       setCompanyInfo('');
       setError('');
+      setShowConfirmation(false);
     }
   };
 
@@ -140,41 +135,65 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Input Mode Toggle */}
+          {/* Job Posting URL - Optional Auto-Fill */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Input Method
+            <label htmlFor="jobUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Job Posting URL (Optional)
             </label>
-            <div className="flex gap-4">
+            <div className="flex gap-2">
+              <input
+                type="url"
+                id="jobUrl"
+                value={jobDescriptionUrl}
+                onChange={(e) => {
+                  setJobDescriptionUrl(e.target.value);
+                  setShowConfirmation(false);
+                }}
+                placeholder="https://example.com/careers/job-posting"
+                className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-gray-400 dark:focus:border-gray-500 transition-all"
+                disabled={isLoading || isParsing}
+              />
               <button
                 type="button"
-                onClick={() => setInputMode('manual')}
-                className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all duration-200 ${
-                  inputMode === 'manual'
-                    ? 'border-[rgba(76,166,38,1)] bg-[rgba(76,166,38,0.1)] dark:bg-[rgba(76,166,38,0.2)] text-[rgba(76,166,38,1)] shadow-[0_0_8px_rgba(76,166,38,0.3)]'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-[rgba(76,166,38,0.5)] hover:bg-[rgba(76,166,38,0.05)]'
+                onClick={handleParseUrl}
+                disabled={isLoading || isParsing || !jobDescriptionUrl.trim()}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-[1.03] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 whitespace-nowrap ${
+                  showConfirmation
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-gray-600 hover:bg-green-700 dark:bg-gray-500 dark:hover:bg-green-700 text-white'
                 }`}
               >
-                Manual Input
-              </button>
-              <button
-                type="button"
-                onClick={() => setInputMode('url')}
-                className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all duration-200 ${
-                  inputMode === 'url'
-                    ? 'border-[rgba(76,166,38,1)] bg-[rgba(76,166,38,0.1)] dark:bg-[rgba(76,166,38,0.2)] text-[rgba(76,166,38,1)] shadow-[0_0_8px_rgba(76,166,38,0.3)]'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-[rgba(76,166,38,0.5)] hover:bg-[rgba(76,166,38,0.05)]'
-                }`}
-              >
-                Job Posting URL
+                {isParsing ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Parsing...
+                  </span>
+                ) : showConfirmation ? (
+                  <span className="flex items-center gap-2">
+                    <span>✓</span>
+                    Parsed
+                  </span>
+                ) : (
+                  'Parse'
+                )}
               </button>
             </div>
+
+            {/* Success Message */}
+            {showConfirmation && (
+              <p className="mt-2 text-xs text-green-600 dark:text-green-400">
+                Successfully parsed! Review and edit the fields below.
+              </p>
+            )}
           </div>
 
           {/* Company Name */}
           <div>
             <label htmlFor="company" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Company Name *
+              Company Name
             </label>
             <input
               type="text"
@@ -183,7 +202,6 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
               onChange={(e) => setCompany(e.target.value)}
               placeholder="e.g., Google, Amazon, Microsoft"
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              required
               disabled={isLoading}
             />
           </div>
@@ -191,7 +209,7 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
           {/* Role */}
           <div>
             <label htmlFor="role" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Role / Position *
+              Role / Position
             </label>
             <input
               type="text"
@@ -200,7 +218,6 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
               onChange={(e) => setRole(e.target.value)}
               placeholder="e.g., Software Engineer, Product Manager"
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              required
               disabled={isLoading}
             />
           </div>
@@ -208,14 +225,13 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
           {/* Seniority Level */}
           <div>
             <label htmlFor="seniority" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Seniority Level *
+              Seniority Level
             </label>
             <select
               id="seniority"
               value={seniority}
               onChange={(e) => setSeniority(e.target.value as InterviewParams['seniority'])}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              required
               disabled={isLoading}
             >
               <option value="intern">Intern</option>
@@ -225,81 +241,37 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
             </select>
           </div>
 
-          {/* URL Mode - Job Posting URL */}
-          {inputMode === 'url' && (
-            <div>
-              <label htmlFor="jobUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Job Posting URL *
-              </label>
-              <input
-                type="url"
-                id="jobUrl"
-                value={jobDescriptionUrl}
-                onChange={(e) => setJobDescriptionUrl(e.target.value)}
-                placeholder="https://example.com/careers/job-posting"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                required
-                disabled={isLoading}
-              />
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                We&apos;ll extract the job description and company information from this URL
-              </p>
-            </div>
-          )}
+          {/* Job Description */}
+          <div>
+            <label htmlFor="jobDescription" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Job Description
+            </label>
+            <textarea
+              id="jobDescription"
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the job description here..."
+              rows={6}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-y"
+              disabled={isLoading}
+            />
+          </div>
 
-          {/* Manual Mode - Job Description */}
-          {inputMode === 'manual' && (
-            <>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label htmlFor="jobDescription" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Job Description *
-                  </label>
-                  <span className={`text-xs font-medium ${
-                    jobDescription.trim().length < 50 
-                      ? 'text-red-600 dark:text-red-400' 
-                      : 'text-green-600 dark:text-green-400'
-                  }`}>
-                    {jobDescription.trim().length}/50 min
-                  </span>
-                </div>
-                <textarea
-                  id="jobDescription"
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste the job description here... (minimum 50 characters)"
-                  rows={6}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    jobDescription.trim().length > 0 && jobDescription.trim().length < 50
-                      ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
-                  } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:border-transparent transition-all resize-y`}
-                  required
-                  disabled={isLoading}
-                />
-                {jobDescription.trim().length > 0 && jobDescription.trim().length < 50 && (
-                  <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                    {50 - jobDescription.trim().length} more characters needed
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="companyInfo" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Company Information (Optional)
-                </label>
-                <textarea
-                  id="companyInfo"
-                  value={companyInfo}
-                  onChange={(e) => setCompanyInfo(e.target.value)}
-                  placeholder="Add information about company values, culture, mission, or any relevant context..."
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-y"
-                  disabled={isLoading}
-                />
-              </div>
-            </>
-          )}
+          {/* Company Information */}
+          <div>
+            <label htmlFor="companyInfo" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Company Information
+            </label>
+            <textarea
+              id="companyInfo"
+              value={companyInfo}
+              onChange={(e) => setCompanyInfo(e.target.value)}
+              placeholder="Add information about company values, culture, mission, or any relevant context..."
+              rows={4}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-y"
+              disabled={isLoading}
+            />
+          </div>
 
           {/* Error Message */}
           {error && (
@@ -313,14 +285,14 @@ export default function FullInterviewModal({ isOpen, onClose, onStart }: FullInt
             <button
               type="button"
               onClick={handleClose}
-              disabled={isLoading}
+              disabled={isLoading || isParsing}
               className="flex-1 px-6 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isParsing}
               className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-[rgba(76,166,38,1)] to-[rgba(76,166,38,0.8)] text-white font-semibold hover:from-[rgba(76,166,38,0.9)] hover:to-[rgba(76,166,38,0.7)] hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg hover:shadow-xl"
             >
               {isLoading ? (
