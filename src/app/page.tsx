@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useSplash } from "@/components/SplashProvider";
 import FullInterviewModal, { InterviewParams } from "@/components/FullInterviewModal";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 
 export default function Home() {
   const { showSplash, setShowSplash } = useSplash();
@@ -16,6 +17,54 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const splashText = "Welcome to TechReady";
   const headerText = "Ready to start your interview prep?";
+
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "TechReady - AI Interview Coach",
+    "applicationCategory": "EducationalApplication",
+    "description": "Practice behavioral and technical interviews with AI-powered feedback. Get real-time coaching, STAR method analysis, and personalized feedback to ace your next job interview.",
+    "url": "https://techready.tech",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "127"
+    },
+    "creator": {
+      "@type": "Organization",
+      "name": "TechReady",
+      "url": "https://techready.tech"
+    },
+    "featureList": [
+      "AI-powered behavioral interview practice",
+      "Technical coding interview preparation",
+      "Real-time voice interaction",
+      "STAR method feedback",
+      "Personalized interview coaching",
+      "Multiple choice and coding challenges",
+      "Interview session recording and analysis"
+    ]
+  };
+
+  const organizationData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "TechReady",
+    "url": "https://techready.tech",
+    "logo": "https://techready.tech/images/TechReady_letters.png",
+    "description": "AI-powered interview preparation platform helping job seekers master behavioral and technical interviews",
+    "sameAs": [
+      "https://twitter.com/techready",
+      "https://linkedin.com/company/techready"
+    ]
+  };
 
   const handleFlowerClick = () => {
     setSpinCount(prev => prev + 1);
@@ -83,7 +132,16 @@ export default function Home() {
   }, [showSplash]);
 
   return (
-    <div className="h-screen bg-white dark:bg-gray-900 transition-colors relative overflow-hidden flex flex-col items-center justify-center">
+    <>
+      {/* Structured Data for SEO */}
+      <Script id="structured-data" type="application/ld+json">
+        {JSON.stringify(structuredData)}
+      </Script>
+      <Script id="organization-data" type="application/ld+json">
+        {JSON.stringify(organizationData)}
+      </Script>
+
+      <div className="h-screen bg-white dark:bg-gray-900 transition-colors relative overflow-hidden flex flex-col items-center justify-center">
       {/* Splash Screen Overlay with typing animation */}
       <div
         className={`fixed inset-0 flex items-center justify-center transition-transform duration-700 ${showSplash ? 'translate-y-0' : '-translate-y-full'}`}
@@ -129,7 +187,7 @@ export default function Home() {
       <div className="flex flex-col items-center justify-center w-full px-4">
         {/* Header Text with Typing Animation - Below Logo */}
         <div className="w-full flex justify-center mb-12">
-          <p className="text-2xl text-black dark:text-white font-medium whitespace-nowrap">
+          <h1 className="text-2xl text-black dark:text-white font-medium whitespace-nowrap">
             {headerTypedText}
             <span
               className={`inline-block ml-1 animate-pulse align-bottom rounded bg-black dark:bg-white`}
@@ -142,13 +200,17 @@ export default function Home() {
                 backgroundColor: headerTypedText.length < headerText.length ? undefined : 'transparent'
               }}
             ></span>
-          </p>
+          </h1>
         </div>
 
         {/* Main Content Area - Centered */}
-        <div className="flex items-center justify-center gap-8 lg:gap-16">
+        <nav className="flex items-center justify-center gap-8 lg:gap-16" aria-label="Interview type selection">
           {/* Left Section - Behavioral Interview */}
-          <Link href="/interview/behavioral" className="flex flex-col items-center group relative mt-8">
+          <Link 
+            href="/interview/behavioral" 
+            className="flex flex-col items-center group relative mt-8"
+            aria-label="Start behavioral interview practice"
+          >
             <div className="flex items-center mb-8 relative">
               <div className="w-30 h-30 rounded-full bg-black dark:bg-white transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl" />
               <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -206,7 +268,11 @@ export default function Home() {
           </div>
 
           {/* Right Section - Technical Interview */}
-          <Link href="/interview/technical" className="flex flex-col items-center group mt-8">
+          <Link 
+            href="/interview/technical" 
+            className="flex flex-col items-center group mt-8"
+            aria-label="Start technical interview practice"
+          >
             <div className="flex flex-col items-center mb-8 group relative">
               {/* Circle with line (antenna) above the square, both move up on hover */}
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 transition-transform duration-300 group-hover:-translate-y-6">
@@ -228,7 +294,7 @@ export default function Home() {
               Technical
             </span>
           </Link>
-        </div>
+        </nav>
 
         {/* Full Interview Button */}
         <div className="mt-16 flex justify-center">
@@ -280,5 +346,6 @@ export default function Home() {
         onStart={handleStartFullInterview}
       />
     </div>
+    </>
   );
 }

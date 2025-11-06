@@ -1,0 +1,23 @@
+{
+  "name": "TechReady - AI Interview Coach",
+  "short_name": "TechReady",
+  "description": "Practice behavioral and technical interviews with AI-powered feedback",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CA626",
+  "icons": [
+    {
+      "src": "/images/TechReady_letters.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/TechReady_letters.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
