@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSplash } from "@/components/SplashProvider";
 import FullInterviewModal, { InterviewParams } from "@/components/FullInterviewModal";
-import WaitlistPopup from "@/components/WaitlistPopup";
+import { useWaitlist } from "@/contexts/WaitlistContext";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -15,7 +15,7 @@ export default function Home() {
   const [headerTypedText, setHeaderTypedText] = useState("");
   const [spinCount, setSpinCount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const { openWaitlist } = useWaitlist();
   const splashText = "Welcome to TechReady";
   const headerText = "Ready to start your interview prep?";
 
@@ -151,7 +151,7 @@ export default function Home() {
         <div className="flex items-center justify-center gap-8 lg:gap-16">
           {/* Left Section - Behavioral Interview */}
           <button 
-            onClick={() => setIsWaitlistOpen(true)} 
+            onClick={() => openWaitlist()} 
             className="flex flex-col items-center group relative mt-8 cursor-pointer bg-transparent border-none p-0"
           >
             <div className="flex items-center mb-8 relative">
@@ -212,7 +212,7 @@ export default function Home() {
 
           {/* Right Section - Technical Interview */}
           <button 
-            onClick={() => setIsWaitlistOpen(true)} 
+            onClick={() => openWaitlist()} 
             className="flex flex-col items-center group mt-8 cursor-pointer bg-transparent border-none p-0"
           >
             <div className="flex flex-col items-center mb-8 group relative">
@@ -241,7 +241,7 @@ export default function Home() {
         {/* Full Interview Button */}
         <div className="mt-16 flex justify-center">
           <button
-            onClick={() => setIsWaitlistOpen(true)}
+            onClick={() => openWaitlist()}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05) rotate(-1deg)';
               e.currentTarget.style.background = 'linear-gradient(to bottom right, rgba(76,166,38,0.15), rgba(76,166,38,0.05))';
@@ -286,12 +286,6 @@ export default function Home() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onStart={handleStartFullInterview}
-      />
-
-      {/* Waitlist Popup */}
-      <WaitlistPopup
-        isOpen={isWaitlistOpen}
-        onClose={() => setIsWaitlistOpen(false)}
       />
     </div>
   );

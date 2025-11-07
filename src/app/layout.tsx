@@ -5,10 +5,12 @@ import Header from "../components/Header";
 import AuthButtons from "../components/AuthButtons";
 import MobileMenuButton from "../components/MobileMenuButton";
 import GoogleAnalytics from "../components/GoogleAnalytics";
+import WaitlistPopup from "../components/WaitlistPopup";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SplashProvider } from "@/components/SplashProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WaitlistProvider } from "@/contexts/WaitlistContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,23 +44,26 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <SplashProvider>
-              <MobileMenuProvider>
-                <SideButtons />
-                <div className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors lg:ml-24">
-                  <div className="relative">
-                    <Header />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                      <MobileMenuButton />
-                    </div>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <AuthButtons />
+              <WaitlistProvider>
+                <MobileMenuProvider>
+                  <SideButtons />
+                  <div className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors lg:ml-24">
+                    <div className="relative">
+                      <Header />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                        <MobileMenuButton />
+                      </div>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <AuthButtons />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <main className="lg:ml-24">
-                  {children}
-                </main>
-              </MobileMenuProvider>
+                  <main className="lg:ml-24">
+                    {children}
+                  </main>
+                  <WaitlistPopup />
+                </MobileMenuProvider>
+              </WaitlistProvider>
             </SplashProvider>
           </AuthProvider>
         </ThemeProvider>
