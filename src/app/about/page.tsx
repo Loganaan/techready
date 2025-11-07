@@ -39,7 +39,7 @@ export default function About() {
             Our Mission
           </h2>
           <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-center max-w-3xl mx-auto">
-            Interview prep can be stressful and time-consuming — especially when it’s hard to get personalized feedback or practice both technical and behavioral questions effectively. We wanted to build a platform that makes interview prep convenient, interactive, and accessible to all. That’s how TechReady was born — an AI-powered coach that helps users practice LeetCode-style problems and behavioral interviews with live, intelligent feedback to simulate a real interview experience.
+            Interview prep can be stressful and time-consuming, especially when it's hard to get personalized feedback or practice both technical and behavioral questions effectively. We wanted to build a platform that makes interview prep convenient, interactive, and accessible to all. That's how TechReady was born, an interview prep tool that helps users practice LeetCode-style problems and behavioral interviews with live feedback to simulate a real interview experience.
           </p>
           <div className="flex justify-center mt-6 sm:mt-8">
             <Button onClick={() => router.push('/')}>
