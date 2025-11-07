@@ -14,6 +14,7 @@ import InterviewSetup from './components/InterviewSetup';
 import MultipleChoiceQuestion from './components/MultipleChoiceQuestion';
 import FreeResponseQuestion from './components/FreeResponseQuestion';
 import InterviewSummary from './components/InterviewSummary';
+import { DEVELOPMENT_MODE } from '@/config/development';
 
 // Extend Window interface for Web Speech API
 declare global {
@@ -213,6 +214,18 @@ function determineQuestionFormat(company: string, role: string, jobDescription: 
 
 export default function TechnicalInterviewPage() {
   const router = useRouter();
+
+  // Redirect to home page with waitlist trigger if not in development mode
+  useEffect(() => {
+    if (!DEVELOPMENT_MODE) {
+      router.replace('/?waitlist=true');
+    }
+  }, [router]);
+
+  // Don't render page content if redirecting
+  if (!DEVELOPMENT_MODE) {
+    return null;
+  }
   
   // Full Interview Flow state
   const [isFullInterview, setIsFullInterview] = useState(false);

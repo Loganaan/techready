@@ -1,11 +1,12 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { useWaitlist } from "@/contexts/WaitlistContext";
+import { DEVELOPMENT_MODE } from "@/config/development";
 
 // Create context for mobile menu state
 const MobileMenuContext = createContext<{
@@ -30,6 +31,7 @@ export function MobileMenuProvider({ children }: { children: ReactNode }) {
 
 export default function SideButtons() {
   const pathname = usePathname();
+  const router = useRouter();
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
@@ -157,7 +159,7 @@ export default function SideButtons() {
 
         {/* Behavioral Interview Button */}
         <button
-          onClick={() => openWaitlist()}
+          onClick={() => DEVELOPMENT_MODE ? router.push('/interview/behavioral') : openWaitlist()}
           onMouseEnter={() => setHoveredButton('behavioral')}
           onMouseLeave={() => setHoveredButton(null)}
           className="group relative w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer"
@@ -226,7 +228,7 @@ export default function SideButtons() {
 
         {/* Technical Interview Button */}
         <button
-          onClick={() => openWaitlist()}
+          onClick={() => DEVELOPMENT_MODE ? router.push('/interview/technical') : openWaitlist()}
           onMouseEnter={() => setHoveredButton('technical')}
           onMouseLeave={() => setHoveredButton(null)}
           className="group relative w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer"

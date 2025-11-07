@@ -12,6 +12,7 @@ import ChatInput from './components/ChatInput';
 import { firebaseUtils } from '@/lib/firebase';
 import { Timestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import { DEVELOPMENT_MODE } from '@/config/development';
 
 interface Message {
   id: string;
@@ -36,6 +37,19 @@ interface ChatSession {
 function BehavioralInterviewContent() {
   const router = useRouter();
   const { user } = useAuth();
+
+  // Redirect to home page with waitlist trigger if not in development mode
+  useEffect(() => {
+    if (!DEVELOPMENT_MODE) {
+      router.replace('/?waitlist=true');
+    }
+  }, [router]);
+
+  // Don't render page content if redirecting
+  if (!DEVELOPMENT_MODE) {
+    return null;
+  }
+
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>('');
   const [inputMessage, setInputMessage] = useState('');

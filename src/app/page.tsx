@@ -6,11 +6,13 @@ import { useEffect, useState } from "react";
 import { useSplash } from "@/components/SplashProvider";
 import FullInterviewModal, { InterviewParams } from "@/components/FullInterviewModal";
 import { useWaitlist } from "@/contexts/WaitlistContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { DEVELOPMENT_MODE } from "@/config/development";
 
 export default function Home() {
   const { showSplash, setShowSplash } = useSplash();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [typedText, setTypedText] = useState("");
   const [headerTypedText, setHeaderTypedText] = useState("");
   const [spinCount, setSpinCount] = useState(0);
@@ -32,6 +34,15 @@ export default function Home() {
     
     setIsModalOpen(false);
   };
+
+  // Check for waitlist query parameter (from redirects)
+  useEffect(() => {
+    if (searchParams.get('waitlist') === 'true') {
+      openWaitlist();
+      // Clean up URL without reloading
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams, openWaitlist]);
 
   useEffect(() => {
     let charIndex = 0;
@@ -151,7 +162,7 @@ export default function Home() {
         <div className="flex items-center justify-center gap-8 lg:gap-16">
           {/* Left Section - Behavioral Interview */}
           <button 
-            onClick={() => openWaitlist()} 
+            onClick={() => DEVELOPMENT_MODE ? router.push('/interview/behavioral') : openWaitlist()} 
             className="flex flex-col items-center group relative mt-8 cursor-pointer bg-transparent border-none p-0"
           >
             <div className="flex items-center mb-8 relative">
@@ -212,7 +223,7 @@ export default function Home() {
 
           {/* Right Section - Technical Interview */}
           <button 
-            onClick={() => openWaitlist()} 
+            onClick={() => DEVELOPMENT_MODE ? router.push('/interview/technical') : openWaitlist()} 
             className="flex flex-col items-center group mt-8 cursor-pointer bg-transparent border-none p-0"
           >
             <div className="flex flex-col items-center mb-8 group relative">
@@ -241,7 +252,7 @@ export default function Home() {
         {/* Full Interview Button */}
         <div className="mt-16 flex justify-center">
           <button
-            onClick={() => openWaitlist()}
+            onClick={() => DEVELOPMENT_MODE ? setIsModalOpen(true) : openWaitlist()}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05) rotate(-1deg)';
               e.currentTarget.style.background = 'linear-gradient(to bottom right, rgba(76,166,38,0.15), rgba(76,166,38,0.05))';
