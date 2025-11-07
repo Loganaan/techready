@@ -50,9 +50,9 @@ export default function WaitlistPopup() {
         >
           ×
         </button>
-        <h2 className="text-xl font-semibold mb-2 text-center">Join the Waitlist!</h2>
+        <h2 className="text-xl font-semibold mb-2 text-center">Site Under Development</h2>
         <p className="text-gray-700 dark:text-gray-200 text-center mb-4">
-          This feature is currently under development. Join our waitlist to get notified when it&apos;s ready!
+          This site is still under development. Join our waitlist to get notified when it&apos;s ready!
         </p>
         {submitted ? (
           <div className="font-medium text-center mb-2" style={{ color: '#4CA626' }}>
