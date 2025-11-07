@@ -66,16 +66,6 @@ export default function SideButtons() {
     }
   };
 
-  // Show popup after splash (simulate with a short delay on mount)
-  useEffect(() => {
-    // Check localStorage for don't show again
-    if (typeof window !== 'undefined') {
-      const dontShow = localStorage.getItem('tr_waitlist_dont_show');
-      if (dontShow === 'true') return;
-    }
-    const timer = setTimeout(() => setShowPopup(true), 1200);
-    return () => clearTimeout(timer);
-  }, []);
   const { resolvedTheme } = useTheme();
   
   // Prevent hydration mismatch by only rendering theme-dependent content after mount
