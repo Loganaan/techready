@@ -1,18 +1,32 @@
 'use client';
 
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSplash } from "@/components/SplashProvider";
 import FullInterviewModal, { InterviewParams } from "@/components/FullInterviewModal";
 import { useWaitlist } from "@/contexts/WaitlistContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEVELOPMENT_MODE } from "@/config/development";
 
-export default function Home() {
+// Component that uses useSearchParams - must be wrapped in Suspense
+function WaitlistQueryHandler() {
+  const searchParams = useSearchParams();
+  const { openWaitlist } = useWaitlist();
+
+  useEffect(() => {
+    if (searchParams.get('waitlist') === 'true') {
+      openWaitlist();
+      // Clean up URL without reloading
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams, openWaitlist]);
+
+  return null;
+}
+
+function HomeContent() {
   const { showSplash, setShowSplash } = useSplash();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [typedText, setTypedText] = useState("");
   const [headerTypedText, setHeaderTypedText] = useState("");
   const [spinCount, setSpinCount] = useState(0);
@@ -34,15 +48,6 @@ export default function Home() {
     
     setIsModalOpen(false);
   };
-
-  // Check for waitlist query parameter (from redirects)
-  useEffect(() => {
-    if (searchParams.get('waitlist') === 'true') {
-      openWaitlist();
-      // Clean up URL without reloading
-      window.history.replaceState({}, '', '/');
-    }
-  }, [searchParams, openWaitlist]);
 
   useEffect(() => {
     let charIndex = 0;
@@ -299,5 +304,16 @@ export default function Home() {
         onStart={handleStartFullInterview}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <WaitlistQueryHandler />
+      </Suspense>
+      <HomeContent />
+    </>
   );
 }

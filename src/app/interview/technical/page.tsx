@@ -214,18 +214,6 @@ function determineQuestionFormat(company: string, role: string, jobDescription: 
 
 export default function TechnicalInterviewPage() {
   const router = useRouter();
-
-  // Redirect to home page with waitlist trigger if not in development mode
-  useEffect(() => {
-    if (!DEVELOPMENT_MODE) {
-      router.replace('/?waitlist=true');
-    }
-  }, [router]);
-
-  // Don't render page content if redirecting
-  if (!DEVELOPMENT_MODE) {
-    return null;
-  }
   
   // Full Interview Flow state
   const [isFullInterview, setIsFullInterview] = useState(false);
@@ -278,6 +266,13 @@ export default function TechnicalInterviewPage() {
   // Timer
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Redirect to home page with waitlist trigger if not in development mode
+  useEffect(() => {
+    if (!DEVELOPMENT_MODE) {
+      router.replace('/?waitlist=true');
+    }
+  }, [router]);
 
   // Get current question (API or mock)
   const currentApiQuestion = apiQuestions[currentQuestionIndex];
@@ -946,6 +941,11 @@ export default function TechnicalInterviewPage() {
         onExit={handleExitToDashboard}
       />
     );
+  }
+
+  // Don't render page content if redirecting
+  if (!DEVELOPMENT_MODE) {
+    return null;
   }
 
   return (
