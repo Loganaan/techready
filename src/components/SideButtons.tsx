@@ -267,8 +267,8 @@ export default function SideButtons() {
         </Link>
 
         {/* Behavioral Interview Button */}
-        <Link
-          href="/interview/behavioral"
+        <button
+          onClick={() => setShowPopup(true)}
           onMouseEnter={() => setHoveredButton('behavioral')}
           onMouseLeave={() => setHoveredButton(null)}
           className="group relative w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer"
@@ -333,11 +333,11 @@ export default function SideButtons() {
           >
             Behavioral
           </span>
-        </Link>
+        </button>
 
         {/* Technical Interview Button */}
-        <Link
-          href="/interview/technical"
+        <button
+          onClick={() => setShowPopup(true)}
           onMouseEnter={() => setHoveredButton('technical')}
           onMouseLeave={() => setHoveredButton(null)}
           className="group relative w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer"
@@ -402,7 +402,7 @@ export default function SideButtons() {
           >
             Technical
           </span>
-        </Link>
+        </button>
 
         {/* About Button */}
         <Link
