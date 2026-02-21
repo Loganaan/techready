@@ -14,6 +14,7 @@ import InterviewSetup from './components/InterviewSetup';
 import MultipleChoiceQuestion from './components/MultipleChoiceQuestion';
 import FreeResponseQuestion from './components/FreeResponseQuestion';
 import InterviewSummary from './components/InterviewSummary';
+import { DEVELOPMENT_MODE } from '@/config/development';
 
 // Extend Window interface for Web Speech API
 declare global {
@@ -265,6 +266,13 @@ export default function TechnicalInterviewPage() {
   // Timer
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Redirect to home page with waitlist trigger if not in development mode
+  useEffect(() => {
+    if (!DEVELOPMENT_MODE) {
+      router.replace('/?waitlist=true');
+    }
+  }, [router]);
 
   // Get current question (API or mock)
   const currentApiQuestion = apiQuestions[currentQuestionIndex];
@@ -933,6 +941,11 @@ export default function TechnicalInterviewPage() {
         onExit={handleExitToDashboard}
       />
     );
+  }
+
+  // Don't render page content if redirecting
+  if (!DEVELOPMENT_MODE) {
+    return null;
   }
 
   return (

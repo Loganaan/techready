@@ -1,12 +1,12 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
-import { db } from "@/lib/firebase";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { useTheme } from "next-themes";
+import { useWaitlist } from "@/contexts/WaitlistContext";
+import { DEVELOPMENT_MODE } from "@/config/development";
 
 // Create context for mobile menu state
 const MobileMenuContext = createContext<{
@@ -31,51 +31,12 @@ export function MobileMenuProvider({ children }: { children: ReactNode }) {
 
 export default function SideButtons() {
   const pathname = usePathname();
+  const router = useRouter();
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
+  const { openWaitlist } = useWaitlist();
 
-  // Popup modal state
-  const [showPopup, setShowPopup] = useState(false);
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
-
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitError(null);
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setSubmitError("Please enter a valid email address.");
-      return;
-    }
-    try {
-      await addDoc(collection(db, "WaitListEmails"), {
-        email,
-        timestamp: Timestamp.now(),
-      });
-      setSubmitted(true);
-      // Only set don't show again on successful submit
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('tr_waitlist_dont_show', 'true');
-      }
-    } catch (err) {
-      setSubmitError("Failed to join waitlist. Please try again later.");
-    }
-  };
-
-  // Show popup after splash (simulate with a short delay on mount)
-  useEffect(() => {
-    // Check localStorage for don't show again
-    if (typeof window !== 'undefined') {
-      const dontShow = localStorage.getItem('tr_waitlist_dont_show');
-      if (dontShow === 'true') return;
-    }
-    const timer = setTimeout(() => setShowPopup(true), 1200);
-    return () => clearTimeout(timer);
-  }, []);
   const { resolvedTheme } = useTheme();
   
   // Prevent hydration mismatch by only rendering theme-dependent content after mount
@@ -123,86 +84,6 @@ export default function SideButtons() {
 
   return (
     <>
-      {/* Popup Modal */}
-      {showPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center relative animate-fade-in">
-            {/* Top right close button */}
-            <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl font-bold cursor-pointer"
-              onClick={() => setShowPopup(false)}
-              aria-label="Close popup"
-            >
-              ×
-            </button>
-            <h2 className="text-xl font-semibold mb-2 text-center">Welcome, join the waitlist!</h2>
-            <p className="text-gray-700 dark:text-gray-200 text-center mb-4">
-              Thanks for visiting TechReady, this application is still under development. Join our waitlist to get the latest updates!
-            </p>
-            {submitted ? (
-              <div className="font-medium text-center mb-2" style={{ color: '#4CA626' }}>Thank you for joining the waitlist!</div>
-            ) : (
-              <>
-                {submitError && (
-                  <div className="text-red-600 text-center mb-2">{submitError}</div>
-                )}
-                <form className="w-full flex flex-col items-center" onSubmit={handleEmailSubmit}>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none mb-3 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                    style={{ boxShadow: '0 0 0 2px #4CA62633' }}
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="w-full px-6 py-2 text-white rounded-lg font-medium transition hover:bg-green-700 hover:scale-[1.03] active:scale-95 focus:ring-2 focus:ring-green-400 cursor-pointer"
-                    style={{ background: '#4CA626' }}
-                    disabled={!email}
-                  >
-                    Join Waitlist
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full mt-2 px-6 py-2 text-white rounded-lg font-medium transition shadow-lg hover:bg-green-700 hover:scale-[1.03] active:scale-95 focus:ring-2 focus:ring-green-400 cursor-pointer"
-                    style={{ background: '#4CA626' }}
-                    onClick={() => setShowPopup(false)}
-                    aria-label="Close popup (below join waitlist)"
-                  >
-                    Close
-                  </button>
-                </form>
-              </>
-            )}
-            {/* Only show the don't show again checkbox if not submitted */}
-            {!submitted && (
-              <div className="flex items-center mt-4 w-full">
-                <input
-                  id="dont-show-again"
-                  type="checkbox"
-                  checked={dontShowAgain}
-                  onChange={e => {
-                    setDontShowAgain(e.target.checked);
-                    if (e.target.checked) {
-                      localStorage.setItem('tr_waitlist_dont_show', 'true');
-                      setShowPopup(false);
-                    } else {
-                      localStorage.removeItem('tr_waitlist_dont_show');
-                    }
-                  }}
-                  className="mr-2"
-                  style={{ accentColor: '#4CA626' }}
-                />
-                <label htmlFor="dont-show-again" className="text-gray-700 dark:text-gray-200 text-sm cursor-pointer select-none">
-                  Don&#39;t show again
-                </label>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
@@ -277,8 +158,8 @@ export default function SideButtons() {
         </Link>
 
         {/* Behavioral Interview Button */}
-        <Link
-          href="/interview/behavioral"
+        <button
+          onClick={() => DEVELOPMENT_MODE ? router.push('/interview/behavioral') : openWaitlist()}
           onMouseEnter={() => setHoveredButton('behavioral')}
           onMouseLeave={() => setHoveredButton(null)}
           className="group relative w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer"
@@ -343,11 +224,11 @@ export default function SideButtons() {
           >
             Behavioral
           </span>
-        </Link>
+        </button>
 
         {/* Technical Interview Button */}
-        <Link
-          href="/interview/technical"
+        <button
+          onClick={() => DEVELOPMENT_MODE ? router.push('/interview/technical') : openWaitlist()}
           onMouseEnter={() => setHoveredButton('technical')}
           onMouseLeave={() => setHoveredButton(null)}
           className="group relative w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer"
@@ -412,7 +293,7 @@ export default function SideButtons() {
           >
             Technical
           </span>
-        </Link>
+        </button>
 
         {/* About Button */}
         <Link

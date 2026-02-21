@@ -1,19 +1,37 @@
 'use client';
 
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSplash } from "@/components/SplashProvider";
 import FullInterviewModal, { InterviewParams } from "@/components/FullInterviewModal";
-import { useRouter } from "next/navigation";
+import { useWaitlist } from "@/contexts/WaitlistContext";
+import { useRouter, useSearchParams } from "next/navigation";
+import { DEVELOPMENT_MODE } from "@/config/development";
 
-export default function Home() {
+// Component that uses useSearchParams - must be wrapped in Suspense
+function WaitlistQueryHandler() {
+  const searchParams = useSearchParams();
+  const { openWaitlist } = useWaitlist();
+
+  useEffect(() => {
+    if (searchParams.get('waitlist') === 'true') {
+      openWaitlist();
+      // Clean up URL without reloading
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams, openWaitlist]);
+
+  return null;
+}
+
+function HomeContent() {
   const { showSplash, setShowSplash } = useSplash();
   const router = useRouter();
   const [typedText, setTypedText] = useState("");
   const [headerTypedText, setHeaderTypedText] = useState("");
   const [spinCount, setSpinCount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { openWaitlist } = useWaitlist();
   const splashText = "Welcome to TechReady";
   const headerText = "Ready to start your interview prep?";
 
@@ -148,7 +166,10 @@ export default function Home() {
         {/* Main Content Area - Centered */}
         <div className="flex items-center justify-center gap-8 lg:gap-16">
           {/* Left Section - Behavioral Interview */}
-          <Link href="/interview/behavioral" className="flex flex-col items-center group relative mt-8">
+          <button 
+            onClick={() => DEVELOPMENT_MODE ? router.push('/interview/behavioral') : openWaitlist()} 
+            className="flex flex-col items-center group relative mt-8 cursor-pointer bg-transparent border-none p-0"
+          >
             <div className="flex items-center mb-8 relative">
               <div className="w-30 h-30 rounded-full bg-black dark:bg-white transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl" />
               <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -161,7 +182,7 @@ export default function Home() {
             <span className="mt-4 text-black dark:text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               Behavioral
             </span>
-          </Link>
+          </button>
 
           {/* Center Section - Decorative */}
           <div className="hidden lg:flex flex-col items-center mx-10 mt-52">
@@ -206,7 +227,10 @@ export default function Home() {
           </div>
 
           {/* Right Section - Technical Interview */}
-          <Link href="/interview/technical" className="flex flex-col items-center group mt-8">
+          <button 
+            onClick={() => DEVELOPMENT_MODE ? router.push('/interview/technical') : openWaitlist()} 
+            className="flex flex-col items-center group mt-8 cursor-pointer bg-transparent border-none p-0"
+          >
             <div className="flex flex-col items-center mb-8 group relative">
               {/* Circle with line (antenna) above the square, both move up on hover */}
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 transition-transform duration-300 group-hover:-translate-y-6">
@@ -227,13 +251,13 @@ export default function Home() {
             <span className="mt-4 text-black dark:text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               Technical
             </span>
-          </Link>
+          </button>
         </div>
 
         {/* Full Interview Button */}
         <div className="mt-16 flex justify-center">
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => DEVELOPMENT_MODE ? setIsModalOpen(true) : openWaitlist()}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05) rotate(-1deg)';
               e.currentTarget.style.background = 'linear-gradient(to bottom right, rgba(76,166,38,0.15), rgba(76,166,38,0.05))';
@@ -280,5 +304,16 @@ export default function Home() {
         onStart={handleStartFullInterview}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <WaitlistQueryHandler />
+      </Suspense>
+      <HomeContent />
+    </>
   );
 }

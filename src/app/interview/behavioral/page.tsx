@@ -12,6 +12,7 @@ import ChatInput from './components/ChatInput';
 import { firebaseUtils } from '@/lib/firebase';
 import { Timestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import { DEVELOPMENT_MODE } from '@/config/development';
 
 interface Message {
   id: string;
@@ -36,6 +37,7 @@ interface ChatSession {
 function BehavioralInterviewContent() {
   const router = useRouter();
   const { user } = useAuth();
+
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>('');
   const [inputMessage, setInputMessage] = useState('');
@@ -49,8 +51,17 @@ function BehavioralInterviewContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sessionCreationInitiatedRef = useRef(false);
 
+  // Redirect to home page with waitlist trigger if not in development mode
+  useEffect(() => {
+    if (!DEVELOPMENT_MODE) {
+      router.replace('/?waitlist=true');
+    }
+  }, [router]);
+
   // Load sessions from Firebase on mount
   useEffect(() => {
+    if (!DEVELOPMENT_MODE) return;
+    
     const loadSessions = async () => {
       if (!user) return;
       
@@ -497,6 +508,11 @@ function BehavioralInterviewContent() {
       }
     }
   };
+
+  // Don't render page content if redirecting
+  if (!DEVELOPMENT_MODE) {
+    return null;
+  }
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-[calc(100vh-8rem)]">
